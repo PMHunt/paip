@@ -62,10 +62,31 @@
   "Return a list of the possible rewrites for this category."
   (rule-rhs (assoc category *grammar*)))
 
-(defun generate (phrase)
-  "Generate a random sentence or phrase. "
-  (cond ((listp phrase) ; is the phrase a list?
-         (mappend #'generate phrase)) ; run generate on list elts then append 'em
-        ((rewrites phrase) ; if it's not a list, can we rewrite it?
-         (generate (random-elt (rewrites phrase)))) ; pick a random elt & rewrite
-        (t (list phrase)))) ; it must be a word so list it
+(defun generate2 (phrase)
+  "Generate a random sentence or phrase. This version answers Ex 2.1. "
+  (let ((choices nil)) ; initialise choices for this scope
+    (cond ((listp phrase)               ; is the phrase a list?
+           (mappend #'generate2 phrase)) ; run generate on list elts then append 'em
+          ((setf choices (rewrites phrase)) ; if it's not a list, can we rewrite it as one?
+           (generate2 (random-elt choices))) ; run generate vs random elt
+          (t (list phrase)))))
+
+(defun generate3 (phrase)
+  "Generate a random sentence or phrase. This version answers Ex 2.2. "
+  (cond ((listp phrase)               ; is the phrase a list?
+         (mappend #'generate2 phrase)) ; run generate on list elts then append 'em
+        ((not-terminal-p phrase) ; if it's not a list, can we rewrite it as one?
+         (generate2 (random-elt (rewrites phrase)))) ; run generate vs random elt
+        (t (list phrase))))
+
+(defun not-terminal-p (category)
+  "True iff this is a rewritable category, but not for list or terminal node"
+  (not (null (rewrites category))))
+
+(defun generate-tree (phrase)
+  "Generate a random sentence or phrase  This version makes a tree instead of list. "
+  (cond ((listp phrase)               ; is the phrase a list?
+         (mapcar #'generate-tree phrase)) ; run generate on list elts
+        ((not-terminal-p phrase) ; if it's not a list, can we rewrite it as one?
+         (cons phrase (generate-tree (random-elt (rewrites phrase))))) ; run generate vs random elt
+        (t (list phrase))))
