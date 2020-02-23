@@ -1,5 +1,16 @@
 ;;; Simple version of Simon's General Problem Solver (GPS) after Norvig
 
+(defun find-all (item sequence &rest keyword-args
+                 &key (test #'eql) test-not &allow-other-keys)
+  "Find all those elements of sequence that match item,
+  according to the keywords.  Doesn't alter sequence.
+Norvig defines this in 3.19 and we're going to need it."
+  (if test-not
+      (apply #'remove item sequence
+             :test-not (complement test-not) keyword-args)
+      (apply #'remove item sequence
+             :test (complement test) keyword-args)))
+
 (defvar *state* nil "The world is all that is the case")
 
 (defvar *ops* nil "Available operations for changing state")
